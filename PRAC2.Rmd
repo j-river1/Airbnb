@@ -1,0 +1,170 @@
+---
+title: PRÁCTICA2
+author: "Autor: Juan y Martin"
+date: "Diciembre de 2020"
+output:
+  html_document:
+    highlight: default
+    number_sections: yes
+    theme: cosmo
+    toc: yes
+    toc_depth: 2
+  word_document: default
+  pdf_document:
+    highlight: zenburn
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+INTEGRACIÓN DE LOS DATOS
+
+Nuestro objetivo será comparar las casas en alquiler en la plataforma AirBnB de las tres ciudades mejor valoradas (según el ranking de bestcities.org) del mundo. Para ello, descargaremos el dataset de cada ciudad de la página http://insideairbnb.com , y los uniremos. 
+
+
+```{r}
+library(readr)
+London_detailed<- read_csv("London_detailed.csv")
+London_detailed[,1:74]
+```
+
+Añadiremos una columna "City" con el valor "London" para etiquetar los registros pertenecientes a London, para después poder compararlos con otras ciudades. 
+
+```{r}
+London_detailed$City = "London"
+```
+
+Haremos lo mismo con las otras dos ciudades (Paris y New York), cargaremos los dataset y les añadiremos una columna con el nombre de la ciudad: 
+
+```{r}
+Paris_detailed<- read_csv("Paris_detailed.csv")
+NY_detailed<- read_csv("NY_detailed.csv")
+
+Paris_detailed$City = "Paris"
+NY_detailed$City = "NY"
+```
+
+Una vez cargados los datos de las tres ciudades y etiquetados correctamente, los uniremos para formar el dataset completo con el que empezaremos a trabajar: 
+
+```{r}
+cat("London| columns:",ncol(London_detailed), "rows:", nrow(London_detailed))
+cat("Paris| columns:",ncol(Paris_detailed), "rows:", nrow(Paris_detailed))
+cat("NY| columns:",ncol(NY_detailed), "rows:", nrow(NY_detailed))
+
+```
+```{r}
+data_detailed <- rbind(London_detailed, Paris_detailed, NY_detailed) 
+cat("Complete dataset| columns:",ncol(data_detailed), "rows:", nrow(data_detailed))
+
+```
+
+SELECCIÓN DE LOS DATOS
+
+Como vemos, nuestro dataset tiene 74 atributos con diferente información sobre la casa o sobre el propietario de la casa. De todos estos atributos la mayoría no los necesitaremos para este análisis. Escogeremos los atributos que utilizaremos a lo largo del trabajo, y que nos serán más útiles para hacer comparaciones entre distintas ciudades:
+```{r}
+library (dplyr)
+data = select(data_detailed,'id', 'host_id', 'host_since', 'host_response_rate', 'host_acceptance_rate', 'host_is_superhost', 'host_listings_count', 'property_type', 'room_type', 'price', 'last_review', 'number_of_reviews', 'availability_30','review_scores_rating', 'City')
+
+data
+```
+
+
+Hemos reducido nuestro dataset de 74 atributos a 15. A continuación haremos un análisis inicial sobre los datos, y los describiremos: 
+
+
+**id:** Es el identificador único de cada alojamiento. 
+
+**host_id:** Es el identificador de cada propietario. Un propietario puede poseer más de un alojamiento. 
+
+**host_since:** Es la fecha en el que se registró el propietario en la plataforma.
+
+**host_response_rate:** El porcentaje de solicitudes respondidas por el propietario. 
+
+**host_acceptance_rate:** Es el porcentaje de propuestas que son aceptadas por el propietario.
+
+**host_is_superhost:** Es un distintivo que la plataforma AirBnB dá a algunos propietarios, si cumplen unos requisitos específicos (mas información en: https://www.airbnb.com/help/article/829/how-do-i-become-a-superhost).
+
+**host_listings_count:** Es la cantidad de alojamientos que tiene en la plataforma el propietario. 
+
+**property_type:** Es el tipo de alojamiento. 
+
+**room_type:** Indica si se trata de una habitación o un apartamento completo.
+
+**price:** El precio por día del alojamiento. 
+
+**last_review:** Fecha de la última reseña (podremos utilizarlo para detectar alojamientos inactivos).
+
+**number_of_reviews:** Cantidad de reseñas que tiene el alojamiento. 
+
+**availability_30:** Los días que está disponible en el plazo de un mes. 
+
+**review_scores_rating:** La puntuación de las reseñas. 
+
+**City:** Es la ciudad donde se encuentra el alojamiento (London, Paris o NY).
+
+LIMPIEZA DE LOS DATOS 
+
+Como vemos en los datos, algunos atributos no están en el formato adecuado para poderlos tratar. Por una parte, tenemos varios atributos del tipp *character* que deberemos de factorizarlos (property_type, room_type y City). Por otra parte, los atributos price, host_response_rate o host_acceptance_rate son del tipo *character* (contienen carácteres como % o $) y los tendremos que modificar para pasarlos a númerico, utilizando la libreria *stringr*. Además, transformaremos el atributo host_is_superhost para que, en vez de tomar valores TRUE o FALSE, sea una columna de 1 y 0. 
+
+```{r}
+library(stringr)
+
+data$room_type <- as.factor(data$room_type)
+data$property_type <- as.factor(data$property_type)
+data$City <- as.factor(data$City)
+
+data$price <- data$price %>% str_extract_all("\\(?[0-9,.]+\\)?") %>% gsub(",", "", .) %>% as.numeric()
+data$host_response_rate <- data$host_response_rate %>% str_extract_all("\\(?[0-9,.]+\\)?") %>% gsub(",", "", .) %>% as.numeric()
+data$host_acceptance_rate <- data$host_acceptance_rate %>% str_extract_all("\\(?[0-9,.]+\\)?") %>% gsub(",", "", .) %>% as.numeric()
+
+data$host_is_superhost <- as.numeric(ifelse(data$host_is_superhost == 'TRUE', 1, 0))
+
+summary(data)
+```
+
+```{r}
+sort(colMeans(is.na(data)), decreasing = TRUE)
+```
+
+Como se puede ver en la tabla anterior, tenemos bastantes datos perdidos, sobre todo en las columnas host_response_rate (95596) y host_acceptance_rate (69240). En review_scores_rating (50217) y las_review (46517) también hay bastantes, y en una cantidad mucho menor en host_since, host_is_superhost y host_listings_count (30). El siguiente paso será analizar qué significa cada valor perdido y resolver que hacer con cada uno de ellos. 
+
+Filtramos y visualizaremos los 30 registros que tienen valores perdidos en *host_since*:
+```{r}
+data %>% filter(is.na(host_since))
+```
+Como podemos ver, se trata de casos que, por algún error en la recolección de los datos, o por error de la plataforma, algunos datos se han perdido, ya que tienen valores perdidos en mínimo cinco atributos. En este caso, es una pequeña cantidad de registros (el 0.0001%), por lo que la decisión será eliminarlos. 
+
+```{r}
+data = filter(data, !is.na(host_since))
+```
+Por otro lado, una cantidad bastante grande (53% y 38%) de los registros toman el valor *NA* en la columna host_response_rate y host_acceptance_rate. Se puede tratar de que, en algunos casos, esta información no es pública. La cantidad de valores perdidos es demasiado grande como para eliminar los registros, por lo que tendremos que prescindir de estos atributos para el análisis. 
+
+
+```{r}
+data = data[ -c(4:5) ]
+```
+Por último veremos que significan los valores perdidos de review_scores_rating. Hechando un vistazo sobre las filas que tienen este campo perdido, nos damos cuenta de que se trata de alojamientos que no tienen ninguna reseña (o tienen una única), por lo que no tienen ninguna puntuación, ni tampoco (lógicamente) ninguna fecha para *last_review*. Que un alojamiento no tenga ninguna reseña indica que no ha sido alquilada en ninguna ocasión (o en muy pocas ocasiones). También puede indicar  que el alojamiento no esta "activo", es decir, aunque aparezca en la plataforma, en realidad el propietario no está pendiente de él. 
+
+Con todo ello, y tomando en cuenta de que se trata de una variable importante (tanto por lo que expresa como por lo que se puede deducir de él), se ha decidido eliminar los registros que tienen valores perdidos en el atributo *review_scores_rating*. Esto supone eliminar la cuarta parte de los datos, pero de esta forma se obtendrá un dataset más íntegro y más acorde con la realidad, ya que supone eliminar gran parte de los alojamientos "incativos". 
+
+```{r}
+data = filter(data, !is.na(review_scores_rating))
+data
+```
+
+Para finalizar con la preparación y limpieza de los datos, eliminaremos los alojamientos que no hayan tenido una reseña en los últimos 2 años, ya que se trata de alojamientos "inactivos". Si tuvieramos en cuenta estos alojamientos "inactivos", éstos alterarían el resultado real de la oferta o del precio en cada ciudad, por ejemplo. 
+
+```{r}
+data = data %>% filter(last_review >= as.Date("2019-01-01"))
+data
+```
+
+Una vez hecha la limpiza, nos queda un dataset de 98,084 registros con 13 atributos. 
+
+
+ANÁLISIS DE LOS DATOS
+
+
+
