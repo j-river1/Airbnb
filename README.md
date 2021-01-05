@@ -8,4 +8,4 @@
 Las aplicaciones ha comenzado a tomar un rol importante en la economia mundial, el sector turistico ha comenzado a sentir su impacto. Sin duda, Airbnb ha sido la aplicación con más usuarios y alojamientos disponibles. Este estudio analizará el comportamiento de los precios de los tipo de alojamiento que tienen disponible en las tres grandes ciudades, Paris  , Nueva York  y Londres. :sunrise:
 
 
-Estudio sobre el comportamiento de las habitaciones
+Por otro lado, este analisis corresponde a la practica 2 de  la asignatura Tipologiía y ciclo de vida de los datos.
