@@ -777,14 +777,15 @@ geom_boxplot() + theme_bw()
 ```
 
 
-##6. Resolución del problema. A partir de los resultados obtenidos, ¿cuáles son las conclusiones? ¿Los resultados permiten responder al problema?
+ 6. Resolución del problema. 
+A partir de los resultados obtenidos, ¿cuáles son las conclusiones? ¿Los resultados permiten responder al problema?
 
 
 De acuerdo al problema planateado inicialmente se logró hacer un estudio detallado de los precios en estas tres ciudades. A pesar de ser las ciudades más importantes a nivel turistico existen diferencias entre ellas. Londres es una ciudad que tiene alojamientos muy costosos, y para el tipo de alojamiento Entity home es más costoso que Paris. En Paris es más barato un private room que un share room en Nueva York. 
 
 Por otra parte, se necesita más información acerca del alojamineto para modelarlos y asi predecir su precio. Por ejemplo, información acerca de su composición fisica, numero de baños, o tamaño de la sala podrían servir para predecir su precio. 
 
-Los resultdos permitieron responder el problema se plantean nuevos estudios a partir de los resultados obtenidos, por ejemplo, como influye el covid en el precio de las alojamientos o  cual fue la ciudad con más afetación.
+Los resulatdos permitieron responder el problema y se plantean nuevos estudios a partir de los resultados obtenidos, por ejemplo, como influye el covid en el precio de las alojamientos o  cual fue la ciudad con más afetación.
 
 
 
