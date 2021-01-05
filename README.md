@@ -16,7 +16,7 @@ Por otro lado, este analisis corresponde a la practica 2 de  la asignatura Tipol
 La organización de las carpetas esta diseñada de la siguiente manera:
 
 * **DATOS ORIGINALES**. Esta carpeta contiene los datos originales del estudio.
-* **pdf**. Está el documento final del curso de tipología y ciclo de vida de los datos.
+* **PDF**. Está el documento final del curso de tipología y ciclo de vida de los datos.
 * **DATOS PROCESADOS**. Esta carpeta contiene los datos procesados. 
 * **SCRIPT**. Están todos los script utilizados para el analisis.
 * **LICENSE**. En esta carpeta está la licencia CC BYNC-SA 4.0 utilizada para el dataset
